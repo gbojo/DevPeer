@@ -1,5 +1,16 @@
 # DevPeer - Developer Networking App
 
+## Project Structure
+src/
+├── components/ # Reusable UI components
+├── screens/ # Screen components
+├── navigation/ # Navigation setup
+├── services/ # API/backend services
+├── hooks/ # Custom hooks
+├── store/ # Redux store
+├── types/ # TypeScript types
+├── utils/ # Helper functions
+└── assets/ # Images/fonts
 
 A React Native app connecting developers in your area.
 
