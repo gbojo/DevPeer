@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Modal, Button, ActivityIndicator, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  Modal,
+  Button,
+  ActivityIndicator,
+  Alert,
+  Image,
+} from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -13,20 +21,31 @@ type User = {
   username: string;
   lat: number;
   lng: number;
+  avatarUrl?: string;
 };
 
 /** ───── TEMPORARY: mock community users ───── */
 const mockUsers: User[] = [
   { id: '1', username: 'torvalds', lat: 37.7749, lng: -122.4194 },
   { id: '2', username: 'gaearon', lat: 37.8044, lng: -122.2712 },
-];
+  { id: '3', username: 'sindresorhus', lat: 37.7849, lng: -122.4294 },
+  { id: '4', username: 'yyx990803', lat: 37.7949, lng: -122.4094 },
+  { id: '5', username: 'tj', lat: 37.7649, lng: -122.4494 },
+  { id: '6', username: 'kentcdodds', lat: 37.7740, lng: -122.4190 },
+  { id: '7', username: 'addyosmani', lat: 37.7840, lng: -122.4280 },
+  { id: '8', username: 'driesvints', lat: 37.7940, lng: -122.4380 },
+  { id: '9', username: 'thekitze', lat: 37.7540, lng: -122.4180 },
+  { id: '10', username: 'rauchg', lat: 37.7440, lng: -122.4080 },
+].map((user) => ({
+  ...user,
+  avatarUrl: `https://github.com/${user.username}.png`,
+}));
 
 export default function MapScreen({ navigation }: Props) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  /** ─────────── Get username + location on mount ─────────── */
   useEffect(() => {
     (async () => {
       try {
@@ -37,21 +56,23 @@ export default function MapScreen({ navigation }: Props) {
           return;
         }
 
-        /* Request permission */
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert('Permission denied', 'Location permission is required to show you on the map.');
+          Alert.alert(
+            'Permission denied',
+            'Location permission is required to show your location on the map.'
+          );
           setLoading(false);
           return;
         }
 
-        /* Get current coordinates */
         const { coords } = await Location.getCurrentPositionAsync({});
         setCurrentUser({
           id: 'me',
           username,
           lat: coords.latitude,
           lng: coords.longitude,
+          avatarUrl: `https://github.com/${username}.png`,
         });
       } catch (err) {
         console.warn(err);
@@ -70,7 +91,6 @@ export default function MapScreen({ navigation }: Props) {
     );
   }
 
-  /** Map region centered on the current user */
   const initialRegion: Region = {
     latitude: currentUser.lat,
     longitude: currentUser.lng,
@@ -80,38 +100,36 @@ export default function MapScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1 }}>
-      <MapView style={{ flex: 1 }} initialRegion={initialRegion} showsUserLocation>
-        {/* Logged-in user marker */}
+      <MapView style={{ flex: 1 }} initialRegion={initialRegion}>
+        {/* Current user marker */}
         <Marker
           key={currentUser.id}
           coordinate={{ latitude: currentUser.lat, longitude: currentUser.lng }}
-          pinColor="dodgerblue"
           onPress={() => setSelectedUser(currentUser)}
+          pinColor="dodgerblue"
         >
-          <View style={{ backgroundColor: '#fff', padding: 5, borderRadius: 20 }}>
-            <Text style={{ fontWeight: 'bold' }}>
-              {currentUser.username[0].toUpperCase()}
-            </Text>
-          </View>
+          <Image
+            source={{ uri: currentUser.avatarUrl }}
+            style={{ width: 36, height: 36, borderRadius: 18 }}
+          />
         </Marker>
 
-        {/* Community users (demo) */}
+        {/* Mock users */}
         {mockUsers.map((user) => (
           <Marker
             key={user.id}
             coordinate={{ latitude: user.lat, longitude: user.lng }}
             onPress={() => setSelectedUser(user)}
           >
-            <View style={{ backgroundColor: '#fff', padding: 5, borderRadius: 20 }}>
-              <Text style={{ fontWeight: 'bold' }}>
-                {user.username[0].toUpperCase()}
-              </Text>
-            </View>
+            <Image
+              source={{ uri: user.avatarUrl }}
+              style={{ width: 32, height: 32, borderRadius: 16 }}
+            />
           </Marker>
         ))}
       </MapView>
 
-      {/* Logout for dev/testing */}
+      {/* Logout button for testing */}
       <View style={{ padding: 16 }}>
         <Button
           title="Logout"
@@ -122,7 +140,7 @@ export default function MapScreen({ navigation }: Props) {
         />
       </View>
 
-      {/* User info modal */}
+      {/* Tooltip Modal */}
       <Modal
         visible={!!selectedUser}
         transparent
@@ -146,6 +164,10 @@ export default function MapScreen({ navigation }: Props) {
               alignItems: 'center',
             }}
           >
+            <Image
+              source={{ uri: selectedUser?.avatarUrl }}
+              style={{ width: 60, height: 60, borderRadius: 30, marginBottom: 10 }}
+            />
             <Text style={{ fontSize: 18, marginBottom: 10 }}>
               👤 {selectedUser?.username}
             </Text>
@@ -153,7 +175,9 @@ export default function MapScreen({ navigation }: Props) {
               title="View GitHub Profile"
               onPress={() => {
                 if (selectedUser) {
-                  navigation.navigate('Profile', { username: selectedUser.username });
+                  navigation.navigate('Profile', {
+                    username: selectedUser.username,
+                  });
                 }
                 setSelectedUser(null);
               }}
