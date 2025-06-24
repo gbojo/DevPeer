@@ -1,0 +1,18 @@
+{
+  "users": [
+    {
+      "id": "ec0d",
+      "username": "torvalds",
+      "lat": 51.2528854,
+      "lng": -114.0392131,
+      "avatarUrl": "https://github.com/torvalds.png"
+    },
+    {
+      "id": "33b4",
+      "username": "gbojo",
+      "lat": 51.2528854,
+      "lng": -114.0392131,
+      "avatarUrl": "https://github.com/gbojo.png"
+    }
+  ]
+}

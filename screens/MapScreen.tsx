@@ -13,44 +13,28 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
+import { registerUser, fetchUsers } from '../utils/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Map'>;
 
 type User = {
-  id: string;
+  id?: number;
   username: string;
   lat: number;
   lng: number;
-  avatarUrl?: string;
+  avatarUrl: string;
 };
 
-/** ───── TEMPORARY: mock community users ───── */
-const mockUsers: User[] = [
-  { id: '1', username: 'torvalds', lat: 37.7749, lng: -122.4194 },
-  { id: '2', username: 'gaearon', lat: 37.8044, lng: -122.2712 },
-  { id: '3', username: 'sindresorhus', lat: 37.7849, lng: -122.4294 },
-  { id: '4', username: 'yyx990803', lat: 37.7949, lng: -122.4094 },
-  { id: '5', username: 'tj', lat: 37.7649, lng: -122.4494 },
-  { id: '6', username: 'kentcdodds', lat: 37.7740, lng: -122.4190 },
-  { id: '7', username: 'addyosmani', lat: 37.7840, lng: -122.4280 },
-  { id: '8', username: 'driesvints', lat: 37.7940, lng: -122.4380 },
-  { id: '9', username: 'thekitze', lat: 37.7540, lng: -122.4180 },
-  { id: '10', username: 'rauchg', lat: 37.7440, lng: -122.4080 },
-].map((user) => ({
-  ...user,
-  avatarUrl: `https://github.com/${user.username}.png`,
-}));
-
 export default function MapScreen({ navigation }: Props) {
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
         const username = await AsyncStorage.getItem('githubUsername');
-
         if (!username) {
           navigation.replace('SignUp');
           return;
@@ -58,25 +42,27 @@ export default function MapScreen({ navigation }: Props) {
 
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert(
-            'Permission denied',
-            'Location permission is required to show your location on the map.'
-          );
+          Alert.alert('Location permission is required.');
           setLoading(false);
           return;
         }
 
         const { coords } = await Location.getCurrentPositionAsync({});
-        setCurrentUser({
-          id: 'me',
+        const newUser: User = {
           username,
           lat: coords.latitude,
           lng: coords.longitude,
           avatarUrl: `https://github.com/${username}.png`,
-        });
+        };
+
+        await registerUser(newUser); // Send to backend
+        setCurrentUser(newUser);
+
+        const users = await fetchUsers(); // Fetch all from backend
+        setAllUsers(users);
       } catch (err) {
-        console.warn(err);
-        Alert.alert('Error', 'Unable to fetch location.');
+        console.error(err);
+        Alert.alert('Error', 'Something went wrong loading map data.');
       } finally {
         setLoading(false);
       }
@@ -101,23 +87,9 @@ export default function MapScreen({ navigation }: Props) {
   return (
     <View style={{ flex: 1 }}>
       <MapView style={{ flex: 1 }} initialRegion={initialRegion}>
-        {/* Current user marker */}
-        <Marker
-          key={currentUser.id}
-          coordinate={{ latitude: currentUser.lat, longitude: currentUser.lng }}
-          onPress={() => setSelectedUser(currentUser)}
-          pinColor="dodgerblue"
-        >
-          <Image
-            source={{ uri: currentUser.avatarUrl }}
-            style={{ width: 36, height: 36, borderRadius: 18 }}
-          />
-        </Marker>
-
-        {/* Mock users */}
-        {mockUsers.map((user) => (
+        {allUsers.map((user) => (
           <Marker
-            key={user.id}
+            key={user.id || user.username}
             coordinate={{ latitude: user.lat, longitude: user.lng }}
             onPress={() => setSelectedUser(user)}
           >
@@ -129,7 +101,6 @@ export default function MapScreen({ navigation }: Props) {
         ))}
       </MapView>
 
-      {/* Logout button for testing */}
       <View style={{ padding: 16 }}>
         <Button
           title="Logout"
@@ -140,7 +111,6 @@ export default function MapScreen({ navigation }: Props) {
         />
       </View>
 
-      {/* Tooltip Modal */}
       <Modal
         visible={!!selectedUser}
         transparent
