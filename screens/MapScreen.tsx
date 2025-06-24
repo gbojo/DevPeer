@@ -3,6 +3,8 @@ import { View, Text, Modal, Button } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Map'>;
 
@@ -46,6 +48,13 @@ export default function MapScreen({ navigation }: Props) {
           </Marker>
         ))}
       </MapView>
+      {/* 🔓 Logout button for testing */}
+      <View style={{ padding: 16 }}>
+        <Button title="Logout" onPress={async () => {
+        await AsyncStorage.removeItem('githubUsername');
+        navigation.replace('SignUp');
+        }} />
+      </View>
 
       <Modal
         visible={!!selectedUser}
