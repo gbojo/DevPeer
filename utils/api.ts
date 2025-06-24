@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-//const BASE_URL = 'http://localhost:3000'; // Change to LAN IP if testing on a real device
-const BASE_URL = 'http://192.168.1.252:3000'; 
+const BASE_URL = 'http://localhost:3000'; // Testing on android simulator
+//const BASE_URL = 'http://192.168.1.252:3000'; // LAN IP while testing on a real device
 
 
 export const registerUser = async (user: {

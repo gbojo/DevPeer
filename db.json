@@ -13,6 +13,27 @@
       "lat": 51.2528854,
       "lng": -114.0392131,
       "avatarUrl": "https://github.com/gbojo.png"
+    },
+    {
+      "id": "6ca6",
+      "username": "sindresorhus",
+      "lat": 51.2528006,
+      "lng": -114.0393407,
+      "avatarUrl": "https://github.com/sindresorhus.png"
+    },
+    {
+      "id": "15a4",
+      "username": "yyx990803",
+      "lat": 49.2827,
+      "lng": -123.1207,
+      "avatarUrl": "https://github.com/yyx990803.png"
+    },
+    {
+      "id": "a7d7",
+      "username": "driesvints",
+      "lat": 53.5461,
+      "lng": -113.4938,
+      "avatarUrl": "https://github.com/driesvints.png"
     }
   ]
 }
